@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="mn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Манай Анги | Дурсамж</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;700;900&display=swap');
+        body { background: #050505; color: white; font-family: 'Inter', sans-serif; scroll-behavior: smooth; -webkit-tap-highlight-color: transparent; }
+        .editable:focus { outline: none; background: rgba(34, 211, 238, 0.15); border-radius: 4px; }
+        .glass-card { background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.1); }
+        .admin-btn { position: absolute; -top: 10px; -right: 10px; background: #ef4444; color: white; width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: bold; z-index: 20; cursor: pointer; }
+        .neon-text { text-shadow: 0 0 15px rgba(34, 211, 238, 0.4); }
+        .img-container { position: relative; cursor: pointer; overflow: hidden; }
+        .img-container::after { content: '📷'; position: absolute; inset: 0; background: rgba(0,0,0,0.4); display: flex; align-items: center; justify-content: center; opacity: 0; transition: 0.3s; }
+        .img-container:hover::after { opacity: 1; }
+    </style>
+</head>
+<body class="pb-40">
+
+    <input type="file" id="global-file-input" accept="image/*" class="hidden">
+
+    <div class="fixed bottom-4 left-1/2 -translate-x-1/2 z-50 flex flex-wrap justify-center gap-2 bg-black/90 p-3 rounded-2xl border border-white/20 backdrop-blur-xl shadow-2xl w-[95%] md:w-auto">
+        <button onclick="addBlock('teacher')" class="bg-blue-600 hover:bg-blue-700 px-3 py-2 rounded-xl text-[10px] font-bold transition">＋ БАГШ</button>
+        <button onclick="addBlock('student')" class="bg-purple-600 hover:bg-purple-700 px-3 py-2 rounded-xl text-[10px] font-bold transition">＋ СУРАГЧ</button>
+        <button onclick="addBlock('story')" class="bg-orange-600 hover:bg-orange-700 px-3 py-2 rounded-xl text-[10px] font-bold transition">＋ ТҮҮХ</button>
+        <button onclick="addBlock('image')" class="bg-green-600 hover:bg-green-700 px-3 py-2 rounded-xl text-[10px] font-bold transition">＋ ЗУРАГ</button>
+        <div class="w-[1px] h-6 bg-white/20 mx-1"></div>
+        <button onclick="saveData()" class="bg-cyan-500 text-black px-5 py-2 rounded-xl text-[10px] font-bold hover:scale-105 active:scale-95 transition">💾 ХАДГАЛАХ</button>
+    </div>
+
+    <div id="main-content">
+        <section class="h-[45vh] flex flex-col items-center justify-center text-center px-6">
+            <h1 contenteditable="true" id="title" class="editable text-5xl md:text-8xl font-black italic tracking-tighter mb-2 neon-text">АНГИЙН НЭР</h1>
+            <p contenteditable="true" id="motto" class="editable text-sm md:text-lg text-cyan-400 font-light tracking-[0.3em] uppercase">Нэг гэр бүл, нэг зорилго</p>
+        </section>
+
+        <div id="list" class="max-w-2xl mx-auto px-6 space-y-6"></div>
+    </div>
+
+    <script>
+        let selectedImg = null;
+        const fileInput = document.getElementById('global-file-input');
+
+        // 1. ЗУРАГ СОЛИХ ҮЙЛДЭЛ (Event Delegation)
+        document.addEventListener('click', function(e) {
+            // Зураг эсвэл зургийн сав дээр дарсан эсэхийг шалгах
+            const container = e.target.closest('.img-container');
+            if (container) {
+                selectedImg = container.querySelector('img');
+                fileInput.click();
+            }
+            // Устгах товчлуур ажиллуулах
+            if (e.target.classList.contains('admin-btn')) {
+                if(confirm('Энэ блокыг устгах уу?')) e.target.parentElement.remove();
+            }
+        });
+
+        fileInput.onchange = function(e) {
+            const file = e.target.files[0];
+            if (file && selectedImg) {
+                const reader = new FileReader();
+                reader.onload = (event) => {
+                    selectedImg.src = event.target.result;
+                    selectedImg.classList.remove('opacity-50'); // Placeholder арилгах
+                };
+                reader.readAsDataURL(file);
+            }
+        };
+
+        // 2. БЛОК НЭМЭХ
+        function addBlock(type) {
+            const list = document.getElementById('list');
+            const div = document.createElement('div');
+            div.className = "group relative animate-in fade-in duration-300";
+            
+            let html = '';
+            if (type === 'teacher') {
+                html = `<div class="glass-card p-5 rounded-3xl flex gap-5 items-center border-l-4 border-blue-500">
+                    <div class="img-container w-20 h-20 flex-shrink-0">
+                        <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=teacher" class="w-full h-full rounded-full object-cover border-2 border-blue-500/30">
+                    </div>
+                    <div>
+                        <h3 contenteditable="true" class="editable font-bold text-lg text-blue-400">Багшийн нэр</h3>
+                        <p contenteditable="true" class="editable text-gray-400 text-sm italic">Багшийн сургаал...</p>
+                    </div>
+                </div>`;
+            } else if (type === 'student') {
+                html = `<div class="glass-card p-4 rounded-2xl flex gap-4 items-center border-l-4 border-purple-500">
+                    <div class="img-container w-14 h-14 flex-shrink-0">
+                        <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=${Math.random()}" class="w-full h-full rounded-full object-cover bg-zinc-800">
+                    </div>
+                    <div>
+                        <h4 contenteditable="true" class="editable font-bold text-sm uppercase">Сурагчийн нэр</h4>
+                        <p contenteditable="true" class="editable text-gray-500 text-[11px]">Товч танилцуулга...</p>
+                    </div>
+                </div>`;
+            } else if (type === 'story') {
+                html = `<div class="glass-card p-6 rounded-3xl border-l-4 border-orange-500">
+                    <h2 contenteditable="true" class="editable text-xl font-black text-orange-500 mb-2 uppercase">МАНАЙ ТҮҮХ</h2>
+                    <p contenteditable="true" class="editable text-gray-300 text-sm leading-relaxed">Бидний түүх эндээс эхэлнэ...</p>
+                </div>`;
+            } else if (type === 'image') {
+                html = `<div class="glass-card p-3 rounded-2xl border-l-4 border-green-500 text-center">
+                    <div class="img-container w-full min-h-[150px] bg-zinc-900 rounded-xl overflow-hidden">
+                        <img src="https://via.placeholder.com/800x450/111/333?text=Зураг+ороогүй" class="w-full h-auto object-cover opacity-50">
+                    </div>
+                    <p contenteditable="true" class="editable text-gray-500 text-[11px] mt-2 italic">Зургийн тайлбар...</p>
+                </div>`;
+            }
+
+            div.innerHTML = html + `<div class="admin-btn">×</div>`;
+            list.appendChild(div);
+        }
+
+        // 3. ХАДГАЛАХ БА УНШИХ
+        function saveData() {
+            try {
+                localStorage.setItem('class_save_html', document.getElementById('list').innerHTML);
+                localStorage.setItem('class_save_title', document.getElementById('title').innerText);
+                localStorage.setItem('class_save_motto', document.getElementById('motto').innerText);
+                alert("Амжилттай хадгалагдлаа! ✨");
+            } catch (e) {
+                alert("Алдаа: Зургийн хэмжээ хэтэрхий их байна. localStorage 5MB хязгаартай тул цөөн зураг оруулна уу.");
+            }
+        }
+
+        window.onload = () => {
+            if(localStorage.getItem('class_save_html')) {
+                document.getElementById('list').innerHTML = localStorage.getItem('class_save_html');
+                document.getElementById('title').innerText = localStorage.getItem('class_save_title');
+                document.getElementById('motto').innerText = localStorage.getItem('class_save_motto');
+            }
+        };
+    </script>
+</body>
+</html>
